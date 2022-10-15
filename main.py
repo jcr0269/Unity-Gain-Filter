@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 samplerate, data = wavfile.read('gong.wav')
 
 #autocorrelation of the .wav file
-# data_a = np.float32(data)
-# corr = signal.correlate(data_a, data_a)
-# lags = signal.correlation_lags(len(data_a), len(data_a))
-# corr = corr / np.max(corr)
-# lag = lags[np.argmax(corr)]
+data_a = np.float32(data)
+corr = signal.correlate(data_a, data_a)
+lags = signal.correlation_lags(len(data_a), len(data_a))
+corr = corr / np.max(corr)
+lag = lags[np.argmax(corr)]
 ################
 
 #Corralate take 2 - This sort of works but need to dig into more.
@@ -34,5 +34,6 @@ plt.figure(figsize=(15,8))
 # plt.plot(data)
 #x limit so that the wave form isnt to big on the plot
 plt.xlim([40000,44000])
+# plt.xlim([20000,21500])
 plt.plot(r)
 plt.show()
