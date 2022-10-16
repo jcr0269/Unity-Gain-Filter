@@ -1,62 +1,59 @@
+import scipy as scipy
 import scipy.signal
 from scipy.io import wavfile
-from playsound import playsound
 import soundfile as sf
 import scipy.signal as signal
 import numpy as np
-import matplotlib
+# import matplotlib
 # matplotlib.use('TkAgg', force=True)
 import matplotlib.pyplot as plt
-from  matplotlib import patches
+from matplotlib import patches
 from matplotlib.figure import Figure
 from matplotlib import rcParams
+import sounddevice as sd
 
 
 samplerate, data = wavfile.read('chirp.wav')
 f1 = 30  # Frequency of 1st signal in Hz
 f2 = 30
 #Normalized signal
-power = data/data.max()
-n = np.linspace(0, 1, 1000)
+power = 1 - data.astype(float)/2**7
+n = np.linspace(0, 1, 8192)
 #Ran for auto correlation
-r = scipy.signal.correlate(power, power, 'full')
+first_corr = scipy.signal.correlate(power, power, 'full')
 
+# sd.play(data, samplerate=samplerate)
 
 #making a sine wave and adding it to data
-data_a = np.array(data)
+
+data_a = data/data.max()
+data_a = 1 - data.astype(float)/2**7
 length = len(data)
-t = np.linspace(0, 1000, num=length)
-the_wave = .5*np.sin(2*np.pi*60*t)
+t = np.linspace(0, 1/samplerate, num=length)
+the_wave = .5*(np.sin(2*np.pi*60*t))
+
 new_data = the_wave + data_a
 
-new_data_norm = new_data/new_data.max()
-r_new_data = scipy.signal.correlate(new_data_norm,new_data_norm,'full')
+# sd.play(new_data, samplerate=samplerate)
 
-# playsound('gong.wav')
-#try sound device
-
-
-#Observation, the sound went gong.``
-
-#filter
-
+r_new_data = scipy.signal.correlate(new_data,new_data,'full')
 
 #I made a filter for 60Hz and it hurt
 samp_freq = 1000  # Sample frequency (Hz)
-notch_freq = 50.0  # Frequency to be removed from signal (Hz)
-quality_factor = 20.0  # Quality factor
+notch_freq = (60.0/samplerate/2)  # Frequency to be removed from signal (Hz)
+quality_factor = 1.0  # Quality factor
 #b_notch is numerator
-b_notch, a_notch = signal.iirnotch(notch_freq, quality_factor, samp_freq)
+b_notch, a_notch = signal.iirnotch(notch_freq, quality_factor)
 
 # Compute magnitude response of the designed filter
 freq, h = signal.freqz(b_notch, a_notch, fs=2 * np.pi)
 x = (freq*samp_freq/(2*np.pi), 20 * np.log10(abs(h)))
 
 outputSignal = signal.filtfilt(b_notch, a_notch, new_data)
+length_out = len(outputSignal)
+length1 = np.linspace(0, 1/samplerate, length_out)
 
-length1 = np.linspace(0, samplerate, len(outputSignal))\
-
-
+######################
 
 # Copyright (c) 2011 Christopher Felton
 #
@@ -141,7 +138,7 @@ def zplane(b, a, filename=None):
 
     return z, p, k
 
-# zplane(a,b)
+
 
 
 ################NUMBER 5##############################
@@ -155,16 +152,37 @@ num5_1 = signal.correlate(num5_1, num5_1)
 #the length
 T_5 = np.linspace(0, 1, len(num5_1))
 
-# #data is for the origional sound wave
+##################NUMBER 6############################
+#https://www.youtube.com/watch?v=ke4i9NsTOyQ
+fs = samplerate
+r = 0.95
+ct_notch_f = 60
+dt_notch_f = 2*np.pi*ct_notch_f/fs
+notch_zeros = [np.exp(1j*dt_notch_f), np.exp(-1j)]
+notch_poles = [r*np.exp(1j*dt_notch_f), r*np.exp(-1j)]
+denom = np.poly(notch_zeros)
+numer = np.poly(notch_poles)
+width, height = scipy.signal.freqz(denom, numer, fs = fs)\
+
+zplane(denom, numer)
+zplane(b,a)
+
+#############NUMBER 7##################################
+num8 = signal.filtfilt(denom, numer, new_data)
+# sd.play(num8, samplerate=samplerate)
+num8_1 = 1 - num8.astype(float)/2**7
+num8_1 = np.correlate(num8_1, num8_1, mode='full')
+
+# data is for the origional sound wave
 plt.plot(data)
 plt.xlabel("Original Sound Wave")
 plt.show()
-plt.plot(r)
-plt.xlabel("Who am I")
+plt.plot(first_corr)
+plt.xlabel("Auto Correlation of original")
 plt.show()
 #psd is welch
 plt.psd(power)
-plt.xlabel("this is the PSD")
+plt.xlabel("this is the PSD of original")
 plt.show()
 plt.plot(new_data)
 plt.xlabel("orignal + 60Hz Sine wave")
@@ -173,12 +191,12 @@ plt.plot(r_new_data)
 plt.xlabel("Auto Correlation of Corrupted Signal")
 plt.show()
 plt.psd(r_new_data)
+plt.xlabel("psd of corrupted")
 plt.show()
 #the filter part
-plt.plot(freq*samp_freq/(2*np.pi), 20 * np.log10(abs(h)),
+plt.plot(freq, 20 * np.log10(abs(h)),
          'r', label='Bandpass filter', linewidth='2')
 plt.show()
-
 plt.plot(length1, outputSignal)
 plt.xlabel("Got signal back")
 plt.show()
@@ -190,6 +208,18 @@ plt.xlabel("corrupted with notch")
 plt.show()
 plt.psd(num5_1)
 plt.xlabel("Power Density of Number 5")
+plt.show()
+plt.plot(width/np.pi, height)
+plt.xlabel("Number 6a")
+plt.show()
+plt.plot(num8)
+plt.xlabel('number 7 a')
+plt.show()
+plt.plot(num8_1)
+plt.xlabel('number 7 b')
+plt.show()
+plt.psd(num8)
+plt.xlabel('number 7 c')
 plt.show()
 
 
