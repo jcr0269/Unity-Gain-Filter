@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib.figure import Figure
 from matplotlib import rcParams
-import sounddevice as sd
-
 
 samplerate, data = wavfile.read('chirp.wav')
 f1 = 30  # Frequency of 1st signal in Hz
@@ -77,7 +75,6 @@ length1 = np.linspace(0, 1/samplerate, length_out)
 a = a_notch
 b = b_notch
 
-
 def zplane(b, a, filename=None):
     """Plot the complex z-plane given a transfer function.
     """
@@ -139,8 +136,6 @@ def zplane(b, a, filename=None):
     return z, p, k
 
 
-
-
 ################NUMBER 5##############################
 # num5 = np.convolve(outputSignal, new_data, mode='full')
 num5 = signal.filtfilt(b_notch, a_notch, new_data)
@@ -158,12 +153,12 @@ fs = samplerate
 r = 0.95
 ct_notch_f = 60
 dt_notch_f = 2*np.pi*ct_notch_f/fs
-notch_zeros = [np.exp(1j*dt_notch_f), np.exp(-1j)]
-notch_poles = [r*np.exp(1j*dt_notch_f), r*np.exp(-1j)]
+notch_zeros = [np.exp(1j*dt_notch_f), np.exp(-1j*dt_notch_f)]
+notch_poles = [r*np.exp(1j*dt_notch_f), r*np.exp(-1j*dt_notch_f)]
 denom = np.poly(notch_zeros)
 numer = np.poly(notch_poles)
-width, height = scipy.signal.freqz(denom, numer, fs = fs)\
-
+width, height = scipy.signal.freqz(denom, numer, fs=fs)
+#
 zplane(denom, numer)
 zplane(b,a)
 
@@ -171,7 +166,7 @@ zplane(b,a)
 num8 = signal.filtfilt(denom, numer, new_data)
 # sd.play(num8, samplerate=samplerate)
 num8_1 = 1 - num8.astype(float)/2**7
-num8_1 = np.correlate(num8_1, num8_1, mode='full')
+num8_1 = signal.correlate(num8_1, num8_1)
 
 # data is for the origional sound wave
 plt.plot(data)
@@ -179,47 +174,62 @@ plt.xlabel("Original Sound Wave")
 plt.show()
 plt.plot(first_corr)
 plt.xlabel("Auto Correlation of original")
+plt.savefig('auto of orignial')
 plt.show()
 #psd is welch
 plt.psd(power)
 plt.xlabel("this is the PSD of original")
+plt.savefig('psd of original ')
 plt.show()
 plt.plot(new_data)
 plt.xlabel("orignal + 60Hz Sine wave")
+plt.savefig('original + sine')
 plt.show()
 plt.plot(r_new_data)
 plt.xlabel("Auto Correlation of Corrupted Signal")
+plt.savefig('Auto Correlation of corrupted')
 plt.show()
 plt.psd(r_new_data)
 plt.xlabel("psd of corrupted")
+plt.savefig('psd of corrupted')
 plt.show()
 #the filter part
 plt.plot(freq, 20 * np.log10(abs(h)),
          'r', label='Bandpass filter', linewidth='2')
+plt.savefig('bandpass')
 plt.show()
 plt.plot(length1, outputSignal)
 plt.xlabel("Got signal back")
+plt.savefig('Got Signal Back')
 plt.show()
 plt.plot(num5)
 plt.xlabel("corrupted with notch")
+plt.savefig('corrupted with notch')
 plt.show()
 plt.plot(T_5, num5_1)
 plt.xlabel("corrupted with notch")
+plt.savefig('corrupted with notch')
 plt.show()
 plt.psd(num5_1)
 plt.xlabel("Power Density of Number 5")
+plt.savefig('Power Density of Number 5')
 plt.show()
 plt.plot(width/np.pi, height)
 plt.xlabel("Number 6a")
+plt.savefig('number 6a')
 plt.show()
 plt.plot(num8)
 plt.xlabel('number 7 a')
+plt.savefig('number 7a')
 plt.show()
 plt.plot(num8_1)
 plt.xlabel('number 7 b')
+plt.savefig('number 7b')
 plt.show()
-plt.psd(num8)
+
+plt.psd(num8_1)
 plt.xlabel('number 7 c')
+plt.savefig('number 7c')
 plt.show()
 
 
