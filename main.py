@@ -2,6 +2,7 @@ import scipy as scipy
 import scipy.signal
 from scipy.io import wavfile
 import soundfile as sf
+import sounddevice as sd
 import scipy.signal as signal
 import numpy as np
 # import matplotlib
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 from matplotlib.figure import Figure
 from matplotlib import rcParams
+from sklearn.metrics import mean_squared_error
 
 samplerate, data = wavfile.read('chirp.wav')
 f1 = 30  # Frequency of 1st signal in Hz
@@ -20,7 +22,7 @@ n = np.linspace(0, 1, 8192)
 #Ran for auto correlation
 first_corr = scipy.signal.correlate(power, power, 'full')
 
-# sd.play(data, samplerate=samplerate)
+sd.play(data, samplerate=samplerate)
 
 #making a sine wave and adding it to data
 
@@ -159,8 +161,8 @@ denom = np.poly(notch_zeros)
 numer = np.poly(notch_poles)
 width, height = scipy.signal.freqz(denom, numer, fs=fs)
 #
-zplane(denom, numer)
-zplane(b,a)
+# zplane(denom, numer)
+# zplane(b,a)
 
 #############NUMBER 7##################################
 num8 = signal.filtfilt(denom, numer, new_data)
@@ -168,6 +170,14 @@ num8 = signal.filtfilt(denom, numer, new_data)
 num8_1 = 1 - num8.astype(float)/2**7
 num8_1 = signal.correlate(num8_1, num8_1)
 
+####################NUMBER 8###########################
+Y_TRUE = num5
+y_pred = num8
+
+# err = ((data_a-y_pred)**2).mean()
+err1 = ((data_a - y_pred)**2)
+
+err_plot2 = np.linspace(0, samplerate, len(err1))
 # data is for the origional sound wave
 plt.plot(data)
 plt.xlabel("Original Sound Wave")
@@ -231,6 +241,11 @@ plt.psd(num8_1)
 plt.xlabel('number 7 c')
 plt.savefig('number 7c')
 plt.show()
+
+plt.plot(err_plot, err1)
+plt.savefig('MSE of first filter')
+plt.show()
+
 
 
 
